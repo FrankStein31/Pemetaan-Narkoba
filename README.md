@@ -1,96 +1,172 @@
-<p align="center"><kbd><img src="https://haibubble.com/static-images/bubbleclinic.png" width="100%" alt="BubbleClinic Demo"></kbd></p>
+# Pemetaan Narkoba — BNN Kabupaten Kediri
 
-## About BubbleClinic
+Platform pemetaan dan monitoring persebaran narkoba berbasis web untuk **BNN Kabupaten Kediri**. Aplikasi ini menyediakan visualisasi data interaktif berupa peta wilayah, manajemen data pasien, antrian, pengaduan masyarakat, serta fitur sosialisasi pencegahan narkoba.
 
-<b>BubbleClinic</b> is an application used for the process of taking queue numbers at clinics. This kind of application helps in managing patient queues at clinics or health care centers. Here are some of the features that BubbleClinic may have:
+---
 
-### BubbleClinic Features:
+## Fitur Utama
 
--   <b>Dashboard</b><br>
-    In the 'Dashboard', you will have access to see a summary of patient data for today, the number of patients from the previous day, the accumulation of patients in a month, and the total number of patients who have been served. The dashboard also provides the ability to analyze data with graphs that visualize patient information. In addition, you can quickly view the latest information of recently added queue data.
+### Publik (Tanpa Login)
+- **Peta Interaktif** (`/peta`) — Peta persebaran narkoba berbasis Google Maps yang dapat diakses oleh siapa saja tanpa perlu login
 
--   <b>Daftar Antrian</b><br>
-    In the 'Daftar Antrian', you can easily retrieve queue numbers for patients. Apart from that, you can easily see the total patient queue for today. The search feature provided helps you find patient data quickly and efficiently. If the patient has come to the clinic, you can easily confirm his arrival.
+### Admin
+| Modul | Deskripsi |
+|---|---|
+| **Dashboard** | Statistik & grafik persebaran narkoba per wilayah |
+| **Peta Desa** (`/maps-desa`) | Peta kerawanan berdasarkan jumlah orang positif narkoba per desa |
+| **Peta Sosialisasi** (`/maps-desa-sosialisasi`) | Peta status sosialisasi pencegahan narkoba per desa |
+| **Peta Jenis Narkoba** (`/maps-desa-jenis-narkoba`) | Peta persebaran berdasarkan golongan narkoba (I, II, III) |
+| **Data Pasien** | CRUD data pasien positif narkoba |
+| **Data Warga** | Manajemen data warga per kecamatan & desa |
+| **Antrian Pasien** | Sistem antrian pasien dengan nomor antrian otomatis |
+| **Antrian Terlambat** | Penanganan pasien yang datang terlambat |
+| **Pengaduan** | Kelola laporan & pengaduan dari masyarakat |
+| **Sosialisasi** | Tracking kegiatan sosialisasi pencegahan narkoba |
+| **Pesan** | Manajemen pesan / broadcast informasi |
+| **Pengaturan** | Konfigurasi aplikasi, ganti password, verifikasi email |
 
-    Not only that, you also have the flexibility to skip patients and move their queues into the 'Late Queue' category, ensuring better handling of patients who arrive at different times. With all these conveniences, organizing and providing timely service becomes more efficient.
+### Masyarakat (User)
+- Dashboard masyarakat
+- Buat & kelola pengaduan
 
--   <b>Antrian Terlambat</b><br>
-    In the 'Antrian Terlambat' feature, you can easily see the number of patients who have registered for today's queue number but arrived late. With a clear display, you can identify these patients quickly. When a patient arrives, you can immediately confirm his presence with a single tap on the confirmation button provided.
+---
 
-    An efficient search feature is also available to make it easier for you to find patient data quickly. With fast and simple search capabilities, you can find information about specific patients easily.
+## Teknologi
 
-    All these features are designed to speed up the queue management process and provide better service to your patients.
+| Komponen | Teknologi |
+|---|---|
+| **Framework** | Laravel 10.x |
+| **PHP** | ≥ 8.2 |
+| **Database** | MySQL |
+| **Frontend** | Blade Templates, Bootstrap 5, jQuery |
+| **Peta** | Google Maps JavaScript API v3 |
+| **Grafik** | ApexCharts |
+| **Search** | Select2 (real-time searchable dropdown) |
+| **Build Tool** | Vite |
+| **Autentikasi** | Laravel Sanctum |
 
--   <b>Data Pasien</b><br>
-    In the 'Data Pasien', information is available regarding the total number of patients who have received service. In addition, you can adjust, edit, or even delete patient data that is not needed or has been archived. There is also a search feature that makes it easy for you to find patient data quickly and precisely. In addition, with the filter by date feature, you can filter patient data according to a certain time range, speeding up access and management of the information you need.
+---
 
--   <b>Pengaturan</b><br>
-    In the 'Pengaturan' menu, you can view and change your personally identifiable information, including identity changes, password changes, and other settings related to the application.
+## Instalasi
 
-## Installation
+### Prasyarat
+- PHP ≥ 8.2
+- Composer
+- MySQL / MariaDB
+- Node.js & NPM (opsional, untuk Vite)
+- Google Maps API Key
 
-#### 1. Clone the repository
+### Langkah Instalasi
 
-```sh
-git clone https://github.com/bubblevy/bubbleclinic.git
-```
+1. **Clone repository**
+   ```bash
+   git clone <repository-url>
+   cd PemetaanNarkoba
+   ```
 
-#### 2. Copy .env
+2. **Install dependencies**
+   ```bash
+   composer install
+   npm install
+   ```
 
-```sh
-cp .env.example .env
-```
+3. **Konfigurasi environment**
+   ```bash
+   cp .env.example .env
+   php artisan key:generate
+   ```
 
-#### 3. Configure .env
+4. **Edit file `.env`**
+   ```env
+   DB_CONNECTION=mysql
+   DB_HOST=127.0.0.1
+   DB_PORT=3306
+   DB_DATABASE=pemetaannarkoba
+   DB_USERNAME=root
+   DB_PASSWORD=
 
-```sh
-FAKER_LOCALE=id_ID
-FILESYSTEM_DISK=public
-```
+   GOOGLE_MAPS_API_KEY=your_google_maps_api_key_here
+   ```
 
-#### 4. Install depedencies
+5. **Buat database & import data**
+   ```bash
+   # Buat database
+   mysql -u root -e "CREATE DATABASE pemetaannarkoba;"
 
-```sh
-composer install
-```
+   # Import SQL dump (jika ada)
+   mysql -u root pemetaannarkoba < pemetaannarkoba.sql
 
-#### 5. Generate Key
+   # Atau jalankan migration & seeder
+   php artisan migrate --seed
+   ```
 
-```sh
-php artisan key:generate
-```
+6. **Jalankan aplikasi**
+   ```bash
+   php artisan serve
+   ```
+   Aplikasi akan berjalan di `http://127.0.0.1:8000`
 
-#### 6. Run Symlink
+---
 
-```sh
-php artisan storage:link
-```
+## Struktur Database
 
-#### 7. Migrate database
+### Tabel Utama
+| Tabel | Deskripsi |
+|---|---|
+| `users` | Data pengguna (admin & masyarakat) |
+| `desa` | Data desa dengan koordinat, poligon, dan statistik |
+| `kecamatan` | Data kecamatan |
+| `patients` | Data pasien positif narkoba |
+| `wargas` | Data warga masyarakat |
+| `queue_numbers` | Nomor antrian pasien |
+| `applications` | Konfigurasi aplikasi |
+| `pengaduans` | Data pengaduan masyarakat |
+| `sosialisasi` | Data kegiatan sosialisasi |
+| `messages` | Pesan / broadcast |
 
-```sh
-php artisan migrate
-```
+---
 
-#### 8. Database seeders
+## Role Pengguna
 
-```sh
-php artisan db:seed
-```
+| Role | Akses |
+|---|---|
+| **Admin** | Akses penuh ke seluruh fitur admin |
+| **Kepala BNN** | Akses dashboard & laporan |
+| **Masyarakat (User)** | Dashboard masyarakat & pengaduan |
+| **Guest** | Halaman landing & peta publik (`/peta`) |
 
-#### 9. Reset antrian every day with cron job
+---
 
-```sh
-php artisan schedule:work
-```
+## Peta Interaktif
 
-#### 10. Run application
+Aplikasi menyediakan 3 jenis peta interaktif berbasis Google Maps:
 
-```sh
-php artisan serve
-```
-#### <i><b>Note. username: admin & password: @Admin123</b></i>
+1. **Peta Kerawanan** — Warna berdasarkan jumlah orang positif narkoba:
+   - 🔴 Merah: ≥ 10 orang
+   - 🟡 Kuning: 5–9 orang
+   - 🟢 Hijau: 0–4 orang
 
-## License
+2. **Peta Sosialisasi** — Warna berdasarkan status sosialisasi:
+   - 🔵 Biru: Sudah disosialisasi
+   - 🔴 Merah: Belum disosialisasi
 
-The BubbleClinic is open-sourced licensed under the [MIT license](https://github.com/bubblevy/bubbleclinic/blob/main/LICENSE).
+3. **Peta Jenis Narkoba** — Warna berdasarkan golongan narkoba:
+   - 🔴 Merah: Golongan I
+   - 🟡 Kuning: Golongan II
+   - ⚫ Hitam: Semua golongan
+   - Dan kombinasi lainnya
+
+### Fitur Peta
+- Pencarian per kecamatan (Select2 real-time search)
+- Kontrol skala peta (slider + zoom in/out)
+- Transparansi blok (opacity slider)
+- Street View
+- Hover info panel per desa
+- Klik untuk zoom ke desa
+- Tombol reset peta
+
+---
+
+## Lisensi
+
+Proyek ini dikembangkan oleh Frankie Steinlie untuk **BNN Kabupaten Kediri**.

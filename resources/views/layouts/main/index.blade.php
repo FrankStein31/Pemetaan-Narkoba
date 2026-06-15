@@ -109,8 +109,8 @@
     }
     .gmap-legend {
         position: absolute;
-        bottom: 45px;
-        right: 50px;
+        bottom: 90px;
+        right: 10px;
         z-index: 5;
         background: rgba(255,255,255,0.95);
         padding: 10px 14px;

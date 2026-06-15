@@ -60,7 +60,11 @@ function initMap() {
         center: center,
         zoom: 11,
         mapTypeId: 'roadmap',
+        zoomControl: false,
         streetViewControl: true,
+        streetViewControlOptions: {
+            position: google.maps.ControlPosition.RIGHT_BOTTOM
+        },
         fullscreenControl: true,
         mapTypeControl: true,
         mapTypeControlOptions: {

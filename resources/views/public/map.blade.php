@@ -50,7 +50,7 @@
         .gmap-info h4 { margin: 0 0 6px; font-size: 13px; color: #666; font-weight: 600; }
         .gmap-info #infoContent { color: #333; line-height: 1.4; }
         .gmap-legend {
-            position: absolute; bottom: 45px; right: 50px; z-index: 5;
+            position: absolute; bottom: 90px; right: 10px; z-index: 5;
             background: rgba(255,255,255,0.95); padding: 10px 14px;
             border-radius: 8px; box-shadow: 0 2px 10px rgba(0,0,0,0.15);
             font-family: Arial, sans-serif; font-size: 13px; line-height: 20px;
@@ -75,7 +75,7 @@
             #map { height: calc(100vh - 90px); min-height: 400px; }
             .search-control { min-width: 200px; }
             .gmap-info { min-width: 160px; font-size: 12px; }
-            .gmap-legend { right: 10px; bottom: 10px; font-size: 11px; }
+            .gmap-legend { right: 10px; bottom: 80px; font-size: 11px; }
         }
     </style>
 </head>
@@ -141,7 +141,10 @@
         var center = { lat: -7.8015312, lng: 111.9448052 };
         var map = new google.maps.Map(document.getElementById('map'), {
             center: center, zoom: 11, mapTypeId: 'roadmap',
-            streetViewControl: true, fullscreenControl: true,
+            zoomControl: false,
+            streetViewControl: true,
+            streetViewControlOptions: { position: google.maps.ControlPosition.RIGHT_BOTTOM },
+            fullscreenControl: true,
             mapTypeControl: true,
             mapTypeControlOptions: {
                 style: google.maps.MapTypeControlStyle.HORIZONTAL_BAR,
