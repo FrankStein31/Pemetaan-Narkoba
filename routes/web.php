@@ -35,6 +35,14 @@ Route::get('/landing', function () {
     return view('landing'); // Tampilkan view contact.blade.php
 });
 
+// Public map page - no login required
+Route::get('/peta', function () {
+    return view('public.map', [
+        'desas' => \App\Models\Desa::all(),
+        'kecamatans' => \App\Models\Kecamatan::orderBy('nama_kecamatan')->get(),
+    ]);
+});
+
 // login
 Route::get('/login', [LoginController::class, 'index'])->name('login')->middleware('guest');
 Route::post('/login', [LoginController::class, 'authenticate']);
