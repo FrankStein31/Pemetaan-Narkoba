@@ -138,7 +138,7 @@
     <script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
     <script>
     function initMap() {
-        var center = { lat: -7.8015312, lng: 111.9448052 };
+        var center = { lat: -7.82545, lng: 112.06125};
         var map = new google.maps.Map(document.getElementById('map'), {
             center: center, zoom: 11, mapTypeId: 'roadmap',
             zoomControl: false,
