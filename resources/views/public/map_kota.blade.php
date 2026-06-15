@@ -180,9 +180,11 @@
                     pop = Math.floor(Math.random() * 15);
                     feature.setProperty('population', pop);
                 }
+                var sWeight = currentOpacity < 0.4 ? 3 : 2;
+                var sColor = currentOpacity < 0.4 ? '#333333' : '#ffffff';
                 return {
                     fillColor: getColor(pop), fillOpacity: currentOpacity,
-                    strokeColor: '#ffffff', strokeWeight: 2, strokeOpacity: 1, clickable: true
+                    strokeColor: sColor, strokeWeight: sWeight, strokeOpacity: 1, clickable: true
                 };
             });
         }
@@ -213,20 +215,19 @@
 
         function filterByKota(selectedName) {
             if (!selectedName) {
-                map.data.forEach(function(f) { map.data.overrideStyle(f, { visible: true }); });
-                applyDefaultStyle();
-                map.setCenter(center); map.setZoom(11);
+                map.data.forEach(function(f) { map.data.revertStyle(f); });
+                map.setCenter(center); map.setZoom(8);
                 return;
             }
             var bounds = new google.maps.LatLngBounds();
             var hasFeatures = false;
             map.data.forEach(function(feature) {
                 if (feature.getProperty('name') === selectedName) {
-                    map.data.overrideStyle(feature, { visible: true, strokeWeight: 3, strokeColor: '#000' });
+                    map.data.overrideStyle(feature, { visible: true, fillOpacity: 0.7, strokeWeight: 3, strokeColor: '#000' });
                     feature.getGeometry().forEachLatLng(function(latLng) { bounds.extend(latLng); });
                     hasFeatures = true;
                 } else {
-                    map.data.overrideStyle(feature, { visible: false });
+                    map.data.overrideStyle(feature, { visible: true, fillOpacity: 0.4, strokeWeight: 1, strokeColor: '#ffffff' });
                 }
             });
             if (hasFeatures) { map.fitBounds(bounds); map.setZoom(Math.min(map.getZoom(), 15)); }
@@ -254,16 +255,18 @@
             opacityLabel.textContent = this.value;
             map.data.setStyle(function(feature) {
                 var pop = feature.getProperty('population') || 0;
-                return { fillColor: getColor(pop), fillOpacity: currentOpacity, strokeColor: '#ffffff', strokeWeight: 2, strokeOpacity: 1, visible: true };
+                var sWeight = currentOpacity < 0.4 ? 3 : 2;
+                var sColor = currentOpacity < 0.4 ? '#333333' : '#ffffff';
+                return { fillColor: getColor(pop), fillOpacity: currentOpacity, strokeColor: sColor, strokeWeight: sWeight, strokeOpacity: 1, visible: true };
             });
         });
 
         document.getElementById('resetView').addEventListener('click', function() {
             $('#kotaSearch').val('').trigger('change');
-            map.data.forEach(function(f) { map.data.overrideStyle(f, { visible: true }); });
-            applyDefaultStyle();
+            map.data.forEach(function(f) { map.data.revertStyle(f); });
             map.setCenter(center); map.setZoom(8);
             zoomSlider.value = 8; opacitySlider.value = 70; opacityLabel.textContent = '70'; currentOpacity = 0.7;
+            applyDefaultStyle();
         });
     }
     </script>
