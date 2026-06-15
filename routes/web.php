@@ -43,6 +43,13 @@ Route::get('/peta', function () {
     ]);
 });
 
+Route::get('/peta-kota', function () {
+    $kotaJson = file_get_contents(database_path('kota_all.json'));
+    return view('public.map_kota', [
+        'kotaJson' => $kotaJson,
+    ]);
+});
+
 // login
 Route::get('/login', [LoginController::class, 'index'])->name('login')->middleware('guest');
 Route::post('/login', [LoginController::class, 'authenticate']);

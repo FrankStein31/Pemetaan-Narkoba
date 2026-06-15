@@ -1,3 +1,15 @@
+@php
+    $kotaData = json_decode($kotaJson, true);
+    $kotas = [];
+    if(isset($kotaData['features'])) {
+        foreach($kotaData['features'] as $f) {
+            if(isset($f['properties']['name'])) {
+                $kotas[] = $f['properties']['name'];
+            }
+        }
+    }
+    sort($kotas);
+@endphp
 <!DOCTYPE html>
 <html lang="id">
 <head>
@@ -93,11 +105,11 @@
             <div id="map"></div>
 
             <div class="gmap-control search-control">
-                <label><i class="bx bx-search"></i> Cari Kecamatan:</label>
-                <select id="kecamatanSearch">
-                    <option value="">-- Semua Kecamatan --</option>
-                    @foreach($kecamatans as $kec)
-                        <option value="{{ $kec->id }}">{{ $kec->nama_kecamatan }}</option>
+                <label><i class="bx bx-search"></i> Cari Kota/Kabupaten:</label>
+                <select id="kotaSearch">
+                    <option value="">-- Semua Kota/Kabupaten --</option>
+                    @foreach($kotas as $kota)
+                        <option value="{{ $kota }}">{{ $kota }}</option>
                     @endforeach
                 </select>
             </div>
@@ -118,7 +130,7 @@
                 <label>Skala Peta:</label>
                 <div class="zoom-controls">
                     <button id="zoomOut" class="btn btn-sm btn-secondary" title="Zoom Out">&minus;</button>
-                    <input type="range" id="zoomSlider" min="5" max="20" value="11" step="1">
+                    <input type="range" id="zoomSlider" min="5" max="20" value="8" step="1">
                     <button id="zoomIn" class="btn btn-sm btn-secondary" title="Zoom In">+</button>
                 </div>
             </div>
@@ -138,9 +150,9 @@
     <script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
     <script>
     function initMap() {
-        var center = { lat: -7.82545, lng: 112.06125};
+        var center = { lat: -7.642029, lng: 113.043407};
         var map = new google.maps.Map(document.getElementById('map'), {
-            center: center, zoom: 11, mapTypeId: 'roadmap',
+            center: center, zoom: 8, mapTypeId: 'roadmap',
             zoomControl: false,
             scaleControl: true,
             streetViewControl: true,
@@ -153,7 +165,7 @@
             }
         });
 
-        var desas = @json($desas);
+        var kotaFeatureCollection = {!! $kotaJson !!};
         var currentOpacity = 0.7;
 
         function getColor(d) {
@@ -162,7 +174,12 @@
 
         function applyDefaultStyle() {
             map.data.setStyle(function(feature) {
-                var pop = feature.getProperty('population') || 0;
+                var pop = feature.getProperty('population');
+                if (pop === undefined) {
+                    // Beri nilai acak untuk visualisasi agar terlihat seperti cluster
+                    pop = Math.floor(Math.random() * 15);
+                    feature.setProperty('population', pop);
+                }
                 return {
                     fillColor: getColor(pop), fillOpacity: currentOpacity,
                     strokeColor: '#ffffff', strokeWeight: 2, strokeOpacity: 1, clickable: true
@@ -170,17 +187,7 @@
             });
         }
 
-        var geoJsonFeatures = desas
-            .filter(function(d) { return d.polygon && d.polygon !== 'null'; })
-            .map(function(d) {
-                return {
-                    type: 'Feature',
-                    properties: { name: d.nama_desa, id: d.id, population: d.population || 0, kecamatan_id: d.kecamatan_id },
-                    geometry: { type: d.type_polygon || 'Polygon', coordinates: JSON.parse(d.polygon) }
-                };
-            });
-
-        map.data.addGeoJson({ type: 'FeatureCollection', features: geoJsonFeatures });
+        map.data.addGeoJson(kotaFeatureCollection);
         applyDefaultStyle();
 
         map.data.addListener('mouseover', function(event) {
@@ -195,7 +202,7 @@
             map.data.revertStyle(event.feature);
             document.getElementById('infoPanel').innerHTML =
                 '<h4>Persebaran Narkoba Kabupaten Kediri</h4>' +
-                '<div id="infoContent">Arahkan kursor ke suatu Desa</div>';
+                '<div id="infoContent">Arahkan kursor ke suatu Kota/Kabupaten</div>';
         });
         map.data.addListener('click', function(event) {
             var bounds = new google.maps.LatLngBounds();
@@ -204,8 +211,8 @@
             map.setZoom(Math.min(map.getZoom(), 16));
         });
 
-        function filterByKecamatan(selectedId) {
-            if (!selectedId) {
+        function filterByKota(selectedName) {
+            if (!selectedName) {
                 map.data.forEach(function(f) { map.data.overrideStyle(f, { visible: true }); });
                 applyDefaultStyle();
                 map.setCenter(center); map.setZoom(11);
@@ -214,7 +221,7 @@
             var bounds = new google.maps.LatLngBounds();
             var hasFeatures = false;
             map.data.forEach(function(feature) {
-                if (feature.getProperty('kecamatan_id') === selectedId) {
+                if (feature.getProperty('name') === selectedName) {
                     map.data.overrideStyle(feature, { visible: true, strokeWeight: 3, strokeColor: '#000' });
                     feature.getGeometry().forEachLatLng(function(latLng) { bounds.extend(latLng); });
                     hasFeatures = true;
@@ -226,11 +233,11 @@
         }
 
         $(document).ready(function() {
-            var $sel = $('#kecamatanSearch');
-            $sel.select2({ placeholder: 'Ketik nama kecamatan...', allowClear: true, dropdownParent: $(document.body) });
+            var $sel = $('#kotaSearch');
+            $sel.select2({ placeholder: 'Ketik nama kota/kabupaten...', allowClear: true, dropdownParent: $(document.body) });
             $sel.on('change.select2', function() {
                 var val = $(this).val();
-                filterByKecamatan(val ? parseInt(val) : null);
+                filterByKota(val);
             });
         });
 
@@ -252,11 +259,11 @@
         });
 
         document.getElementById('resetView').addEventListener('click', function() {
-            $('#kecamatanSearch').val('').trigger('change');
+            $('#kotaSearch').val('').trigger('change');
             map.data.forEach(function(f) { map.data.overrideStyle(f, { visible: true }); });
             applyDefaultStyle();
-            map.setCenter(center); map.setZoom(11);
-            zoomSlider.value = 11; opacitySlider.value = 70; opacityLabel.textContent = '70'; currentOpacity = 0.7;
+            map.setCenter(center); map.setZoom(8);
+            zoomSlider.value = 8; opacitySlider.value = 70; opacityLabel.textContent = '70'; currentOpacity = 0.7;
         });
     }
     </script>
