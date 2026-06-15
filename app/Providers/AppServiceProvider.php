@@ -14,7 +14,13 @@ class AppServiceProvider extends ServiceProvider
      */
     public function register(): void
     {
-        //
+        // Suppress E_DEPRECATED notices from vendor packages (PHP 8.5 compat)
+        set_error_handler(function (int $errno, string $errstr, string $errfile, int $errline) {
+            if ($errno === E_DEPRECATED && str_contains($errfile, DIRECTORY_SEPARATOR . 'vendor' . DIRECTORY_SEPARATOR)) {
+                return true;
+            }
+            return false;
+        }, E_DEPRECATED);
     }
 
     /**

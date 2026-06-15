@@ -2,141 +2,223 @@
 @section('container')
 <div class="row">
     <div class="col-md-12 col-lg-12 order-0 mb-4">
-      <div class="card h-1000">
-        <div class="card-body">
+        <div class="card h-1000">
+            <div class="card-body">
+                <div id="map-wrapper">
+                    <div id="map"></div>
 
-            <div id="map"></div>
-            <!-- Make sure you put this AFTER Leaflet's CSS -->
-            <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"
-                integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin=""></script>
+                    <div class="gmap-control search-control">
+                        <label><i class="bx bx-search"></i> Cari Kecamatan:</label>
+                        <select id="kecamatanSearch">
+                            <option value="">-- Semua Kecamatan --</option>
+                            @foreach($kecamatans as $kec)
+                                <option value="{{ $kec->id }}">{{ $kec->nama_kecamatan }}</option>
+                            @endforeach
+                        </select>
+                    </div>
 
+                    <div class="gmap-info" id="infoPanel">
+                        <h4>Persebaran Narkoba Kabupaten Kediri</h4>
+                        <div id="infoContent">Arahkan kursor ke suatu Desa</div>
+                    </div>
+
+                    <div class="gmap-legend">
+                        <h4>Keterangan</h4>
+                        <div><span style="background:#FF0000"></span> &ge; 10 Orang</div>
+                        <div><span style="background:#ffff00"></span> 5 &ndash; 9 Orang</div>
+                        <div><span style="background:#0B6623"></span> 0 &ndash; 4 Orang</div>
+                    </div>
+
+                    <div class="gmap-control zoom-control">
+                        <label>Skala Peta:</label>
+                        <div class="zoom-controls">
+                            <button id="zoomOut" class="btn btn-sm btn-secondary" title="Zoom Out">&minus;</button>
+                            <input type="range" id="zoomSlider" min="5" max="20" value="11" step="1">
+                            <button id="zoomIn" class="btn btn-sm btn-secondary" title="Zoom In">+</button>
+                        </div>
+                    </div>
+
+                    <div class="gmap-control opacity-control">
+                        <label>Transparansi Blok: <span id="opacityValue">70</span>%</label>
+                        <input type="range" id="opacitySlider" min="0" max="100" value="70">
+                    </div>
+
+                    <div class="gmap-control reset-control">
+                        <button id="resetView" class="btn btn-sm btn-primary"><i class="bx bx-reset"></i> Reset Peta</button>
+                    </div>
+                </div>
+            </div>
         </div>
-      </div>
     </div>
-    <script>
-        var map = L.map('map').setView([-7.8015312,111.9448052], 11);
+</div>
 
-        var tiles = L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png', {
-            maxZoom: 22,
-            attribution: '&copy; <a href="http://www.openstreetmap.org/copyright">OpenStreetMap</a>'
-        }).addTo(map);
-
-        // console.log(@json($desas))
-        const desas = @json($desas)
-        // const villages= {!! json_encode($desas)!!};
-
-        const desaData = desas
-        .filter(desa => desa.polygon && desa.polygon !== 'null')
-        .map(desa => ({
-            type: "Feature",
-            properties:{
-                name: desa.nama_desa,
-                id: desa.id,
-                population: desa.population,
-            },
-            geometry: {
-                type: desa.type_polygon,
-                coordinates: JSON.parse(desa.polygon),
-            }
-        }));
-
-        const geoJson = {
-            type: "FeatureCollection",
-            features: desaData,
-        };
-
-        function getColor(d) {
-            return d >= 10   ? '#FF0000' :
-                d >= 5   ? '#ffff00' :
-                            '#0B6623';
+<script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
+<script>
+function initMap() {
+    var center = { lat: -7.8015312, lng: 111.9448052 };
+    var map = new google.maps.Map(document.getElementById('map'), {
+        center: center,
+        zoom: 11,
+        mapTypeId: 'roadmap',
+        streetViewControl: true,
+        fullscreenControl: true,
+        mapTypeControl: true,
+        mapTypeControlOptions: {
+            style: google.maps.MapTypeControlStyle.HORIZONTAL_BAR,
+            position: google.maps.ControlPosition.TOP_CENTER
         }
+    });
 
-        function style(feature) {
-            return {
-                fillColor: getColor(feature.properties.population),
-                weight: 2,
-                opacity: 1,
-                color: 'white',
-                dashArray: '3',
-                fillOpacity: 0.7
-            };
-        }
+    var desas = @json($desas);
+    var currentOpacity = 0.7;
 
-        function highlightFeature(e) {
-            var layer = e.target;
-
-            layer.setStyle({
-                weight: 5,
-                color: '#666',
-                dashArray: '',
-                fillOpacity: 0.7
-            });
-
-            layer.bringToFront();
-            info.update(layer.feature.properties);
-        }
-
-        function resetHighlight(e) {
-            geojson.resetStyle(e.target);
-            info.update();
-        }
-
-        function zoomToFeature(e) {
-            map.fitBounds(e.target.getBounds());
-        }
-
-        function onEachFeature(feature, layer) {
-            layer.on({
-                mouseover: highlightFeature,
-                mouseout: resetHighlight,
-                click: zoomToFeature
-            });
-        }
-
-        geojson = L.geoJson(geoJson, {
-            style: style,
-            onEachFeature: onEachFeature
-        }).addTo(map);
-
-        var info = L.control();
-
-        info.onAdd = function (map) {
-            this._div = L.DomUtil.create('div', 'info'); // create a div with a class "info"
-            this.update();
-            return this._div;
-        };
-
-        // method that we will use to update the control based on feature properties passed
-        info.update = function (props) {
-            this._div.innerHTML = '<h4>Persebaran Narkoba Kabupaten Kediri</h4>' +  (props ?
-                '<b>' + props.name + '</b><br />' + props.population + ' Orang Positif Narkoba'
-                : 'Arahkan kursor ke suatu Desa');
-        };
-
-        info.addTo(map);
-
-        var legend = L.control({position: 'bottomright'});
-
-        legend.onAdd = function (map) {
-
-            var div = L.DomUtil.create('div', 'info legend'),
-                grades = [0, 5, 10],
-                labels = [];
-
-            // loop through our density intervals and generate a label with a colored square for each interval
-            for (var i = 0; i < grades.length; i++) {
-        var from = grades[i];
-        var to = grades[i + 1];
-
-        div.innerHTML +=
-            '<i style="background:' + getColor(from) + '"></i> ' +
-            (to ? from + '&ndash;' + (to - 1) + '<br>' : from + '+');
+    function getColor(d) {
+        return d >= 10 ? '#FF0000' : d >= 5 ? '#ffff00' : '#0B6623';
     }
 
-            return div;
-        };
+    function applyDefaultStyle() {
+        map.data.setStyle(function(feature) {
+            var pop = feature.getProperty('population') || 0;
+            return {
+                fillColor: getColor(pop),
+                fillOpacity: currentOpacity,
+                strokeColor: '#ffffff',
+                strokeWeight: 2,
+                strokeOpacity: 1,
+                clickable: true
+            };
+        });
+    }
 
-        legend.addTo(map);
+    var geoJsonFeatures = desas
+        .filter(function(d) { return d.polygon && d.polygon !== 'null'; })
+        .map(function(d) {
+            return {
+                type: 'Feature',
+                properties: {
+                    name: d.nama_desa,
+                    id: d.id,
+                    population: d.population || 0,
+                    kecamatan_id: d.kecamatan_id
+                },
+                geometry: {
+                    type: d.type_polygon || 'Polygon',
+                    coordinates: JSON.parse(d.polygon)
+                }
+            };
+        });
 
-    </script>
+    map.data.addGeoJson({ type: 'FeatureCollection', features: geoJsonFeatures });
+    applyDefaultStyle();
+
+    map.data.addListener('mouseover', function(event) {
+        map.data.overrideStyle(event.feature, {
+            strokeWeight: 4,
+            strokeColor: '#333333',
+            fillOpacity: Math.min(currentOpacity + 0.15, 1)
+        });
+        var name = event.feature.getProperty('name');
+        var pop = event.feature.getProperty('population');
+        document.getElementById('infoPanel').innerHTML =
+            '<h4>Persebaran Narkoba Kabupaten Kediri</h4>' +
+            '<div id="infoContent"><b>' + name + '</b><br>' + pop + ' Orang Positif Narkoba</div>';
+    });
+
+    map.data.addListener('mouseout', function(event) {
+        map.data.revertStyle(event.feature);
+        document.getElementById('infoPanel').innerHTML =
+            '<h4>Persebaran Narkoba Kabupaten Kediri</h4>' +
+            '<div id="infoContent">Arahkan kursor ke suatu Desa</div>';
+    });
+
+    map.data.addListener('click', function(event) {
+        var bounds = new google.maps.LatLngBounds();
+        event.feature.getGeometry().forEachLatLng(function(latLng) { bounds.extend(latLng); });
+        map.fitBounds(bounds);
+        map.setZoom(Math.min(map.getZoom(), 16));
+    });
+
+    /* Search function: filter polygons & zoom to selected kecamatan */
+    function filterByKecamatan(selectedId) {
+        if (!selectedId) {
+            map.data.forEach(function(feature) {
+                map.data.overrideStyle(feature, { visible: true });
+            });
+            applyDefaultStyle();
+            map.setCenter(center);
+            map.setZoom(11);
+            return;
+        }
+        var bounds = new google.maps.LatLngBounds();
+        var hasFeatures = false;
+        map.data.forEach(function(feature) {
+            var kecId = feature.getProperty('kecamatan_id');
+            if (kecId === selectedId) {
+                map.data.overrideStyle(feature, { visible: true, strokeWeight: 3, strokeColor: '#000' });
+                feature.getGeometry().forEachLatLng(function(latLng) { bounds.extend(latLng); });
+                hasFeatures = true;
+            } else {
+                map.data.overrideStyle(feature, { visible: false });
+            }
+        });
+        if (hasFeatures) {
+            map.fitBounds(bounds);
+            map.setZoom(Math.min(map.getZoom(), 15));
+        }
+    }
+
+    /* Initialize Select2 with real-time search */
+    $(document).ready(function() {
+        var $sel = $('#kecamatanSearch');
+        $sel.select2({
+            placeholder: 'Ketik nama kecamatan...',
+            allowClear: true,
+            dropdownParent: $(document.body)
+        });
+        $sel.on('change.select2', function() {
+            var val = $(this).val();
+            filterByKecamatan(val ? parseInt(val) : null);
+        });
+    });
+
+    var zoomSlider = document.getElementById('zoomSlider');
+    var zoomInBtn = document.getElementById('zoomIn');
+    var zoomOutBtn = document.getElementById('zoomOut');
+    zoomSlider.addEventListener('input', function() { map.setZoom(parseInt(this.value)); });
+    zoomInBtn.addEventListener('click', function() { map.setZoom(Math.min(map.getZoom() + 1, 20)); });
+    zoomOutBtn.addEventListener('click', function() { map.setZoom(Math.max(map.getZoom() - 1, 5)); });
+    map.addListener('zoom_changed', function() { zoomSlider.value = map.getZoom(); });
+
+    var opacitySlider = document.getElementById('opacitySlider');
+    var opacityLabel = document.getElementById('opacityValue');
+    opacitySlider.addEventListener('input', function() {
+        currentOpacity = parseInt(this.value) / 100;
+        opacityLabel.textContent = this.value;
+        map.data.setStyle(function(feature) {
+            var pop = feature.getProperty('population') || 0;
+            return {
+                fillColor: getColor(pop), fillOpacity: currentOpacity,
+                strokeColor: '#ffffff', strokeWeight: 2, strokeOpacity: 1, visible: true
+            };
+        });
+    });
+
+    document.getElementById('resetView').addEventListener('click', function() {
+        $('#kecamatanSearch').val('').trigger('change');
+        map.data.forEach(function(feature) {
+            map.data.overrideStyle(feature, { visible: true });
+        });
+        applyDefaultStyle();
+        map.setCenter(center);
+        map.setZoom(11);
+        zoomSlider.value = 11;
+        opacitySlider.value = 70;
+        opacityLabel.textContent = '70';
+        currentOpacity = 0.7;
+    });
+}
+</script>
+<script async defer
+    src="https://maps.googleapis.com/maps/api/js?key={{ $gmapsKey }}&libraries=geometry&callback=initMap">
+</script>
 @endsection

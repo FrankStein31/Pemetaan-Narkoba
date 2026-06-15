@@ -14,8 +14,6 @@
   <link href="https://fonts.googleapis.com/css2?family=Public+Sans:ital,wght@0,300;0,400;0,500;0,600;0,700;1,300;1,400;1,500;1,600;1,700&display=swap" rel="stylesheet" />
   <link href="https://fonts.googleapis.com/css2?family=Poppins:ital,wght@0,300;0,400;0,500;0,600;0,700;1,300;1,400;1,500;1,600;1,700&display=swap" rel="stylesheet" />
   <link href="https://fonts.googleapis.com/css2?family=Lobster&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"
-        integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=" crossorigin="" />
   <link rel="stylesheet" href="{{ asset('assets/vendors/assets/vendor/fonts/boxicons.css') }}" />
   <link rel="stylesheet" href="{{ asset('assets/vendors/assets/vendor/css/core.css') }}" />
   <link rel="stylesheet" href="{{ asset('assets/vendors/assets/vendor/css/theme.css') }}" />
@@ -30,6 +28,7 @@
   <link rel="stylesheet" href="{{ asset('assets/vendors/libs/sweetalert2/sweetalert.css') }}">
   <script src="{{ asset('assets/vendors/libs/sweetalert2/sweetalert.js') }}"></script>
   <script src="{{ asset('assets/vendors/assets/js/config.js') }}"></script>
+  <link href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css" rel="stylesheet" />
   <style>
 
     * {
@@ -40,6 +39,139 @@
 
     #map {
         height: 600px;
+        border-radius: 6px;
+    }
+    #map-wrapper {
+        position: relative;
+    }
+    .gmap-control {
+        position: absolute;
+        z-index: 10;
+        background: white;
+        padding: 10px 14px;
+        border-radius: 8px;
+        box-shadow: 0 2px 10px rgba(0,0,0,0.15);
+        font-family: Arial, sans-serif;
+        font-size: 13px;
+    }
+    .gmap-control label {
+        display: block;
+        margin-bottom: 5px;
+        font-weight: 600;
+        color: #444;
+    }
+    .search-control {
+        top: 10px;
+        left: 10px;
+        min-width: 260px;
+        z-index: 100;
+    }
+    .search-control .select2-container {
+        width: 100% !important;
+    }
+    .search-control .select2-selection--single {
+        height: 34px !important;
+        border-radius: 4px;
+        border-color: #ddd;
+    }
+    .search-control .select2-selection--single .select2-selection__rendered {
+        line-height: 32px !important;
+        font-size: 13px;
+    }
+    .search-control .select2-selection--single .select2-selection__arrow {
+        height: 32px !important;
+    }
+    .select2-container--open .select2-dropdown {
+        z-index: 9999 !important;
+    }
+    .gmap-info {
+        position: absolute;
+        top: 10px;
+        right: 10px;
+        z-index: 10;
+        background: rgba(255,255,255,0.95);
+        padding: 10px 14px;
+        border-radius: 8px;
+        box-shadow: 0 2px 10px rgba(0,0,0,0.15);
+        font-family: Arial, sans-serif;
+        font-size: 14px;
+        min-width: 220px;
+    }
+    .gmap-info h4 {
+        margin: 0 0 6px;
+        font-size: 13px;
+        color: #666;
+        font-weight: 600;
+    }
+    .gmap-info #infoContent {
+        color: #333;
+        line-height: 1.4;
+    }
+    .gmap-legend {
+        position: absolute;
+        bottom: 45px;
+        right: 50px;
+        z-index: 5;
+        background: rgba(255,255,255,0.95);
+        padding: 10px 14px;
+        border-radius: 8px;
+        box-shadow: 0 2px 10px rgba(0,0,0,0.15);
+        font-family: Arial, sans-serif;
+        font-size: 13px;
+        line-height: 20px;
+    }
+    .gmap-legend h4 {
+        margin: 0 0 5px;
+        font-size: 12px;
+        color: #666;
+    }
+    .gmap-legend div {
+        display: flex;
+        align-items: center;
+        gap: 6px;
+        margin: 2px 0;
+    }
+    .gmap-legend span {
+        display: inline-block;
+        width: 18px;
+        height: 18px;
+        border-radius: 3px;
+        opacity: 0.8;
+    }
+    .opacity-control {
+        bottom: 12px;
+        left: 10px;
+    }
+    .opacity-control input[type="range"] {
+        width: 160px;
+        display: block;
+    }
+    .zoom-control {
+        bottom: 85px;
+        left: 10px;
+    }
+    .zoom-controls {
+        display: flex;
+        align-items: center;
+        gap: 6px;
+    }
+    .zoom-controls input[type="range"] {
+        width: 120px;
+    }
+    .zoom-controls button {
+        width: 30px;
+        height: 30px;
+        font-size: 16px;
+        font-weight: bold;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        padding: 0;
+    }
+    .reset-control {
+        bottom: 160px;
+        left: 10px;
+        padding: 6px 10px;
     }
     .info {
         padding: 6px 8px;
